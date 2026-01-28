@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shatakshi Computer 🖥️ - Jhiljhile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+
+    <style>
+        :root {
+            --primary-green: #2e7d32;
+            --esewa-color: #60bb46;
+            --whatsapp-color: #25d366;
+            --light-bg: #f8f9fa;
+            --border-color: #eeeeee;
+            --text-gray: #757575;
+            --dark-blue: #2c3e50;
+            --shadow: 0 4px 15px rgba(0,0,0,0.1);
+            /* New Theme Colors */
+            --accent-blue: #007bff;
+            --card-btn-bg: #f1f3f4;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        body { 
+            background-color: #f4f7f6; 
+            padding-bottom: 120px; 
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* --- New Header Actions & 3-Dot Menu --- */
+        .header-right { display: flex; align-items: center; gap: 18px; }
+        .three-dot-btn { cursor: pointer; padding: 5px; font-size: 20px; color: #444; }
+        .dropdown-menu {
+            position: absolute; top: 65px; right: 15px; background: white;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15); border-radius: 12px;
+            display: none; flex-direction: column; min-width: 180px; z-index: 5000;
+            overflow: hidden; border: 1px solid rgba(0,0,0,0.05);
+            animation: slideDown 0.3s ease;
+        }
+        .dropdown-menu.active { display: flex; }
+        .dropdown-item {
+            padding: 12px 20px; font-size: 14px; display: flex; align-items: center;
+            gap: 12px; cursor: pointer; transition: 0.2s; color: #333;
+        }
+        .dropdown-item:hover { background: #f8f9fa; color: var(--primary-green); }
+        .dropdown-item i { width: 20px; font-size: 16px; }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Enhanced Product Buttons --- */
+        .card-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-add-cart { 
+            background: var(--card-btn-bg); border: none; padding: 10px; 
+            border-radius: 10px; cursor: pointer; transition: 0.3s;
+            display: flex; align-items: center; justify-content: center; width: 45px;
+        }
+        .btn-add-cart:active { transform: scale(0.9); background: #e0e0e0; }
+        .btn-buy-now { 
+            background: var(--esewa-color); color: white; border: none; flex: 1;
+            padding: 10px; border-radius: 10px; font-weight: 700; cursor: pointer;
+            font-size: 14px; transition: 0.3s;
+        }
+        .btn-buy-now:active { transform: scale(0.96); opacity: 0.9; }
+
+        /* Search Bar Styles */
+        .search-container {
+            padding: 10px 15px;
+            background: white;
+        }
+        .search-box {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 1px solid #eee;
+            background: #f9f9f9;
+            outline: none;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+        .search-box input {
+            border: none;
+            background: transparent;
+            width: 100%;
+            margin-left: 10px;
+            outline: none;
+        }
+
+        /* --- Auth Screen Styles --- */
+        #authScreen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff; z-index: 9999; display: flex; align-items: center; justify-content: center;
+            overflow-y: auto; padding: 20px 0;
+        }
+        .auth-box { width: 90%; max-width: 400px; padding: 30px; text-align: center; border-radius: 20px; box-shadow: var(--shadow); background: white; }
+        .auth-toggle-btns { display: flex; gap: 10px; margin-bottom: 20px; }
+        .auth-toggle-btns button { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd; background: #f9f9f9; cursor: pointer; }
+        .auth-toggle-btns button.active { background: var(--primary-green); color: white; border-color: var(--primary-green); }
+
+        /* --- Admin Dashboard --- */
+        #adminDashboard {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 5000; display: none; padding: 25px;
+            overflow-y: auto;
+        }
+        .admin-form { background: var(--light-bg); padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05); }
+        .admin-input { width: 100%; padding: 12px; margin-top: 10px; border: 1px solid #ddd; border-radius: 8px; background: white; font-size: 14px; }
+        .admin-btn { background: var(--primary-green); color: white; border: none; padding: 14px; width: 100%; margin-top: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .admin-btn:active { transform: scale(0.98); }
+        .cost-field { color: #d32f2f; font-weight: bold; font-size: 0.9em; background: #ffebee; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-top: 5px; }
+
+        /* --- Cart Drawer --- */
+        #cartDrawer {
+            position: fixed; bottom: -100%; left: 0; width: 100%; height: 75%;
+            background: white; z-index: 4000; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); padding: 25px;
+            border-top-left-radius: 30px; border-top-right-radius: 30px;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.15); overflow-y: auto;
+        }
+        #cartDrawer.open { bottom: 0; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; }
+
+        /* --- Generic Modal for Product & Profile --- */
+        .full-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 6000; display: none; overflow-y: auto;
+        }
+        .modal-content { padding: 25px; max-width: 600px; margin: 0 auto; }
+        .close-modal { position: sticky; top: 20px; left: 20px; background: white; border: none; font-size: 20px; cursor: pointer; z-index: 6001; box-shadow: var(--shadow); border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; }
+
+        header {
+            padding: 15px 20px; display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--border-color); position: sticky; top: 0;
+            background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        }
+
+        .category-bar { display: flex; overflow-x: auto; padding: 10px 20px; gap: 12px; scrollbar-width: none; background: white; }
+        .pill { background: #fff; padding: 10px 22px; border-radius: 50px; font-size: 13px; font-weight: 600; white-space: nowrap; border: 1px solid #eee; cursor: pointer; transition: 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .pill.active { background: var(--primary-green); color: white; border-color: var(--primary-green); box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3); }
+
+        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; }
+        .card { border: none; border-radius: 18px; padding: 15px; position: relative; background: #fff; box-shadow: var(--shadow); transition: 0.3s; }
+        .img-box { width: 100%; height: 160px; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; border-radius: 12px; background: #fdfdfd; }
+        .img-box img { max-width: 90%; max-height: 90%; object-fit: contain; }
+
+        .footer-info { background: white; padding: 40px 20px; margin-top: 40px; border-top: 1px solid #eee; border-radius: 30px 30px 0 0; }
+        .info-card h4 { margin-bottom: 8px; color: var(--primary-green); font-size: 18px; }
+
+        .cs-btn { position: fixed; right: 20px; bottom: 120px; background: #007bff; color: white; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(0,123,255,0.3); z-index: 999; cursor: pointer; border: 3px solid white; }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 85px; background: white; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--border-color); z-index: 1000; padding-bottom: 10px; }
+        .nav-item { text-align: center; color: var(--text-gray); font-size: 11px; flex: 1; cursor: pointer; text-decoration: none; transition: 0.2s;}
+        .nav-item i { display: block; font-size: 24px; margin-bottom: 5px; }
+        .nav-item.active { color: var(--primary-green); font-weight: bold; }
+        
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 2000; display: none; }
+        #toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 12px 30px; border-radius: 50px; font-size: 14px; display: none; z-index: 7000; backdrop-filter: blur(5px); }
+        #hiddenFileInput { display: none; }
+
+        .profile-data-row { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid #eee; }
+    </style>
+</head>
+<body>
+
+    <div id="authScreen">
+        <div class="auth-box">
+            <h1 style="color: var(--primary-green); margin-bottom: 15px;">Shatakshi Computer 🖥️</h1>
+            
+            <div class="auth-toggle-btns">
+                <button id="toggleLogin" class="active" onclick="toggleAuthMode('login')">Login</button>
+                <button id="toggleSignup" onclick="toggleAuthMode('signup')">Signup</button>
+            </div>
+
+            <div id="signupFields" style="display: none;">
+                <input type="text" id="regName" class="admin-input" placeholder="Full Name">
+                <input type="text" id="regCaste" class="admin-input" placeholder="Caste">
+                <input type="number" id="regAge" class="admin-input" placeholder="Age">
+            </div>
+
+            <input type="email" id="authEmail" class="admin-input" placeholder="Email Address">
+            <input type="password" id="authPassword" class="admin-input" placeholder="Password">
+            
+            <button class="admin-btn" onclick="handleAuthAction()" id="authBtn">Continue</button>
+            <div id="authLoading" style="display:none; margin-top:10px; color: var(--primary-green);">Processing...</div>
+        </div>
+    </div>
+
+    <div id="productModal" class="full-modal">
+        <button class="close-modal" onclick="closeProductDetails()"><i class="fas fa-times"></i></button>
+        <div class="modal-content" id="modalBody"></div>
+    </div>
+
+    <div id="profileModal" class="full-modal">
+        <button class="close-modal" onclick="document.getElementById('profileModal').style.display='none'"><i class="fas fa-arrow-left"></i></button>
+        <div class="modal-content">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="width: 80px; height: 80px; background: var(--primary-green); color: white; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 30px; margin-bottom: 15px;">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h2 id="profName">User Profile</h2>
+                <p id="profEmail" style="color: #666;"></p>
+            </div>
+
+            <div class="profile-data-row"><span>Caste:</span><strong id="profCaste">-</strong></div>
+            <div class="profile-data-row"><span>Age:</span><strong id="profAge">-</strong></div>
+            
+            <button class="admin-btn" style="background:#d32f2f; margin-top: 40px;" onclick="firebase.auth().signOut()">Logout Account</button>
+        </div>
+    </div>
+
+    <div id="cartDrawer">
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <h2 style="font-size: 24px;">Shopping Cart</h2>
+            <button onclick="toggleCart()" style="border:none; background:#f0f0f0; width:35px; height:35px; border-radius:50%; font-size:18px;">×</button>
+        </div>
+        <div id="cartItemsList"></div>
+        <div style="margin-top:30px; background: #f9f9f9; padding: 20px; border-radius: 15px;">
+            <div style="display:flex; justify-content: space-between; font-weight: 800; font-size:20px; color: var(--primary-green);">
+                <span>Total Amount:</span>
+                <span id="cartTotal">Rs 0</span>
+            </div>
+            <button class="admin-btn" style="background:var(--whatsapp-color); font-size: 16px;" onclick="checkoutWhatsApp()">Confirm Order via WhatsApp</button>
+        </div>
+    </div>
+
+    <div id="adminDashboard">
+        <div style="display:flex; justify-content: space-between; align-items: center;">
+            <h2 style="color: var(--primary-green);">Inventory Control</h2>
+            <button onclick="toggleAdminPanel()" style="padding: 8px 20px; border-radius: 20px; border:1px solid #ddd; background: #fff;">Close</button>
+        </div>
+        <hr style="margin: 20px 0; opacity: 0.1;">
+        <div class="admin-form">
+            <h4 style="margin-bottom:10px;">Product Information</h4>
+            <input type="text" id="adminPName" class="admin-input" placeholder="Product Name">
+            <div style="display: flex; gap: 10px;">
+                <input type="number" id="adminPCost" class="admin-input" placeholder="Cost Price">
+                <input type="number" id="adminPSell" class="admin-input" placeholder="Selling Price">
+            </div>
+            <select id="adminPCategory" class="admin-input">
+                <option value="All Products">Select Category</option>
+                <option value="Laptops">Laptops</option>
+                <option value="Desktop PC">Desktop PC</option>
+                <option value="Printers">Printers</option>
+                <option value="Repairing">Repairing</option>
+            </select>
+            <textarea id="adminPDesc" class="admin-input" placeholder="Description..." rows="4"></textarea>
+            <textarea id="adminPFeatures" class="admin-input" placeholder="Key Specs..." rows="2"></textarea>
+            <button class="admin-btn" onclick="fileInput.click()"><i class="fas fa-camera"></i> Save Product</button>
+        </div>
+    </div>
+
+    <input type="file" id="hiddenFileInput" accept="image/*">
+    <div class="overlay" id="overlay" onclick="closeAll()"></div>
+
+    <header>
+        <div class="menu-btn"><i class="fas fa-bars" style="font-size: 20px;"></i></div>
+        <div class="logo-area" onclick="location.reload()">
+            <div style="font-size: 22px; font-weight: 900; color: var(--primary-green);">Shatakshi 🖥️</div>
+        </div>
+        
+        <div class="header-right">
+            <div class="cart-area" onclick="toggleCart()" style="position:relative; cursor:pointer;">
+                <i class="fas fa-shopping-basket" style="font-size:20px;"></i>
+                <span id="cartCountBadge" style="position:absolute; top:-5px; right:-5px; background:red; color:white; font-size:10px; padding:2px 6px; border-radius:10px; display:none;">0</span>
+            </div>
+            <div class="three-dot-btn" onclick="toggleDropdown(event)">
+                <i class="fas fa-ellipsis-v"></i>
+            </div>
+            <div class="dropdown-menu" id="headerDropdown">
+                <div class="dropdown-item" onclick="openProfile()">
+                    <i class="fas fa-user-circle"></i> Profile
+                </div>
+                <div class="dropdown-item" onclick="toggleCart()">
+                    <i class="fas fa-shopping-bag"></i> My Cart
+                </div>
+                <div class="dropdown-item" onclick="window.location.href='tel:9818540466'">
+                    <i class="fas fa-phone-alt"></i> Call Support
+                </div>
+                <div class="dropdown-item" style="color: #d32f2f;" onclick="firebase.auth().signOut()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="search-container">
+        <div class="search-box">
+            <i class="fas fa-search" style="color: #ccc;"></i>
+            <input type="text" id="searchInput" placeholder="Search for Laptops, Printers..." onkeyup="filterProducts()">
+        </div>
+    </div>
+
+    <div class="category-bar">
+        <div class="pill active" id="pill-all" onclick="setCategoryFilter('All Products', this)">All Products</div>
+        <div class="pill" onclick="setCategoryFilter('Laptops', this)">Laptops</div>
+        <div class="pill" onclick="setCategoryFilter('Desktop PC', this)">Desktop PC</div>
+        <div class="pill" onclick="setCategoryFilter('Printers', this)">Printers</div>
+        <div class="pill" onclick="setCategoryFilter('Repairing', this)">Repairing</div>
+    </div>
+
+    <div class="product-grid" id="productGrid"></div>
+
+    <section class="footer-info">
+        <div class="info-card">
+            <h4>Store Location</h4>
+            <p>Jhiljhile, Shivatakshi 8, Jhapa, Nepal</p>
+        </div>
+    </section>
+
+    <div class="cs-btn" onclick="window.location.href='tel:9818540466'"><i class="fas fa-headset"></i></div>
+    <div id="toast">Message Sent!</div>
+
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item active" onclick="location.reload()"><i class="fas fa-th-large"></i>Shop</a>
+        <a href="tel:9818540466" class="nav-item"><i class="fas fa-phone"></i>Contact</a>
+        <a href="#" class="nav-item" onclick="toggleCart()"><i class="fas fa-shopping-bag"></i>Cart</a>
+        <a href="#" class="nav-item" onclick="openProfile()"><i class="fas fa-user-circle"></i>Profile</a>
+    </nav>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCL-OgHfVUD8IsTSEnunqL6bfs6TKg9W5s",
+            authDomain: "liga2-3dc2f.firebaseapp.com",
+            databaseURL: "https://liga2-3dc2f-default-rtdb.firebaseio.com",
+            projectId: "liga2-3dc2f",
+            storageBucket: "liga2-3dc2f.firebasestorage.app",
+            messagingSenderId: "588466896158",
+            appId: "1:588466896158:web:78a107297e68276f575608"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const auth = firebase.auth();
+
+        let authMode = 'login';
+        let currentUserData = null;
+        let activeCategory = 'All Products';
+
+        // --- Dropdown Logic ---
+        function toggleDropdown(e) {
+            e.stopPropagation();
+            document.getElementById('headerDropdown').classList.toggle('active');
+        }
+        window.onclick = function() {
+            document.getElementById('headerDropdown').classList.remove('active');
+        }
+
+        function toggleAuthMode(mode) {
+            authMode = mode;
+            document.getElementById('signupFields').style.display = mode === 'signup' ? 'block' : 'none';
+            document.getElementById('toggleLogin').className = mode === 'login' ? 'active' : '';
+            document.getElementById('toggleSignup').className = mode === 'signup' ? 'active' : '';
+        }
+
+        function handleAuthAction() {
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            
+            if(!email || !password) return alert("Fill all fields");
+
+            document.getElementById('authBtn').style.display = 'none';
+            document.getElementById('authLoading').style.display = 'block';
+
+            if(authMode === 'signup') {
+                const name = document.getElementById('regName').value;
+                const caste = document.getElementById('regCaste').value;
+                const age = document.getElementById('regAge').value;
+                
+                if(!name || !caste || !age) {
+                    alert("Please fill name, caste and age for signup");
+                    resetAuthBtn();
+                    return;
+                }
+
+                auth.createUserWithEmailAndPassword(email, password)
+                    .then((res) => {
+                        db.ref('users/' + res.user.uid).set({ name, caste, age, email });
+                    })
+                    .catch(e => { alert(e.message); resetAuthBtn(); });
+            } else {
+                auth.signInWithEmailAndPassword(email, password)
+                    .catch(e => { alert(e.message); resetAuthBtn(); });
+            }
+        }
+
+        function resetAuthBtn() {
+            document.getElementById('authBtn').style.display = 'block';
+            document.getElementById('authLoading').style.display = 'none';
+        }
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                document.getElementById('authScreen').style.display = 'none';
+                db.ref('users/' + user.uid).on('value', snap => {
+                    currentUserData = snap.val();
+                });
+                refreshGrid();
+            } else {
+                document.getElementById('authScreen').style.display = 'flex';
+                resetAuthBtn();
+            }
+        });
+
+        function openProfile() {
+            if(!currentUserData) return showToast("Loading profile...");
+            document.getElementById('profName').innerText = currentUserData.name || "User";
+            document.getElementById('profEmail').innerText = auth.currentUser.email;
+            document.getElementById('profCaste').innerText = currentUserData.caste || "-";
+            document.getElementById('profAge').innerText = currentUserData.age || "-";
+            document.getElementById('profileModal').style.display = 'block';
+        }
+
+        let currentAdminMode = false;
+        let allProducts = {};
+        let cart = [];
+
+        // --- 3-FINGER TRIPLE TAP GESTURE ---
+        let touchCounter = 0;
+        let lastTouchTime = 0;
+        document.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 3) {
+                const now = new Date().getTime();
+                if (now - lastTouchTime < 600) {
+                    touchCounter++;
+                } else {
+                    touchCounter = 1;
+                }
+                lastTouchTime = now;
+
+                if (touchCounter >= 3) {
+                    const pass = prompt("Enter Admin Password:");
+                    if(pass === "2025") {
+                        currentAdminMode = true;
+                        toggleAdminPanel();
+                        refreshGrid(); // Refresh to show cost prices
+                    }
+                    touchCounter = 0;
+                }
+            }
+        });
+
+        function toggleAdminPanel() {
+            const p = document.getElementById('adminDashboard');
+            p.style.display = p.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function setCategoryFilter(cat, el) {
+            activeCategory = cat;
+            document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+            el.classList.add('active');
+            filterProducts();
+        }
+
+        function filterProducts() {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = "";
+            Object.keys(allProducts).forEach(id => {
+                const p = allProducts[id];
+                if((activeCategory === 'All Products' || p.category === activeCategory) && 
+                   (p.name.toLowerCase().includes(q))) {
+                    renderProduct(p, id);
+                }
+            });
+        }
+
+        function refreshGrid() {
+            db.ref('products').on('value', snap => {
+                allProducts = snap.val() || {};
+                filterProducts();
+            });
+        }
+
+        function renderProduct(p, id) {
+            const cost = currentAdminMode ? `<p class="cost-field">CP: Rs ${p.cost}</p>` : '';
+            const del = currentAdminMode ? `<button style="position:absolute; top:8px; right:8px; background:red; color:white; border:none; border-radius:8px; width:30px; height:30px; z-index:10;" onclick="deleteItem('${id}')"><i class="fas fa-trash"></i></button>` : '';
+            
+            const html = `
+                <div class="card">
+                    ${del}
+                    <div class="img-box" onclick="viewDetails('${id}')"><img src="${p.img}"></div>
+                    <h3 style="font-size: 14px; margin: 10px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.name}</h3>
+                    <p style="font-weight:bold; color:var(--primary-green);">Rs ${p.price}</p>
+                    ${cost}
+                    <div class="card-actions">
+                        <button class="btn-add-cart" onclick="addToCart('${id}')"><i class="fas fa-cart-plus"></i></button>
+                        <button class="btn-buy-now" onclick="whatsappMe('${p.name}', '${p.price}')">Order Now</button>
+                    </div>
+                </div>`;
+            document.getElementById('productGrid').insertAdjacentHTML('afterbegin', html);
+        }
+
+        function deleteItem(id) {
+            if(confirm("Delete this item?")) db.ref('products/'+id).remove();
+        }
+
+        function addToCart(id) {
+            cart.push(allProducts[id]);
+            updateCartUI();
+            showToast("Added to cart!");
+        }
+
+        function updateCartUI() {
+            const list = document.getElementById('cartItemsList');
+            const badge = document.getElementById('cartCountBadge');
+            list.innerHTML = "";
+            let total = 0;
+            cart.forEach((item, index) => {
+                total += parseInt(item.price);
+                list.innerHTML += `<div class="cart-item"><span>${item.name}</span><span>Rs ${item.price}</span></div>`;
+            });
+            document.getElementById('cartTotal').innerText = "Rs " + total;
+            badge.innerText = cart.length;
+            badge.style.display = cart.length > 0 ? "block" : "none";
+        }
+
+        function toggleCart() {
+            const drawer = document.getElementById('cartDrawer');
+            drawer.classList.toggle('open');
+            document.getElementById('overlay').style.display = drawer.classList.contains('open') ? 'block' : 'none';
+        }
+
+        function viewDetails(id) {
+            const p = allProducts[id];
+            document.getElementById('modalBody').innerHTML = `
+                <img src="${p.img}" style="width:100%; border-radius:15px; margin-bottom:15px;">
+                <h2>${p.name}</h2>
+                <p style="font-size:20px; color:var(--primary-green); font-weight:800; margin:10px 0;">Rs ${p.price}</p>
+                <div style="background:#f0f0f0; padding:15px; border-radius:10px; margin:15px 0;">
+                    <strong>Key Features:</strong><br>${p.features}
+                </div>
+                <p style="color:#666;">${p.description}</p>
+                <button class="admin-btn" onclick="whatsappMe('${p.name}', '${p.price}')">Order via WhatsApp</button>
+            `;
+            document.getElementById('productModal').style.display = "block";
+        }
+
+        function closeProductDetails() { document.getElementById('productModal').style.display = "none"; }
+        function closeAll() { 
+            document.getElementById('cartDrawer').classList.remove('open'); 
+            document.getElementById('overlay').style.display = 'none'; 
+        }
+        function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.display='block'; setTimeout(()=>t.style.display='none', 2000); }
+        
+        function checkoutWhatsApp() {
+            let msg = "Hello Shatakshi Computer, I want to order:\n" + cart.map(i => "- " + i.name).join("\n");
+            window.open(`https://wa.me/9779818540466?text=${encodeURIComponent(msg)}`);
+        }
+        function whatsappMe(n, p) { window.open(`https://wa.me/9779818540466?text=I am interested in ${n} (Rs ${p})`); }
+
+        const fileInput = document.getElementById('hiddenFileInput');
+        fileInput.onchange = function() {
+            if(!fileInput.files[0]) return;
+            const reader = new FileReader();
+            reader.onloadend = function() {
+                db.ref('products').push({
+                    name: document.getElementById('adminPName').value,
+                    cost: document.getElementById('adminPCost').value,
+                    price: document.getElementById('adminPSell').value,
+                    category: document.getElementById('adminPCategory').value,
+                    description: document.getElementById('adminPDesc').value,
+                    features: document.getElementById('adminPFeatures').value,
+                    img: reader.result
+                }).then(() => { 
+                    showToast("Product Saved!"); 
+                    toggleAdminPanel();
+                    document.querySelectorAll('.admin-input').forEach(i => i.value = "");
+                });
+            }
+            reader.readAsDataURL(fileInput.files[0]);
+        };
+    </script>
+</body>
+</html>
